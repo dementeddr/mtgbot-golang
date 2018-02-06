@@ -1,0 +1,27 @@
+[
+    {
+        "trigger":"\\[\\[slambo\\]\\]",
+        "response":[
+            "http://i.imgur.com/4vFIe9d.jpg",
+            "http://i.imgur.com/kZyW3EP.png",
+            "https://i.imgur.com/WcpiftW.png",
+            "https://i.imgur.com/qT1bquI.gif",
+            "https://i.imgur.com/SsYiN82.jpg",
+            "https://i.imgur.com/VIFLFAv.jpg",
+            "https://i.imgur.com/gjHxJcD.png",
+            "https://ca.slack-edge.com/T50SNSNF6-U51KKUB0W-480e24985283-512"
+        ]
+    },
+    {
+        "trigger":"\\[\\[zoop\\]\\]",
+        "response":[
+            ":coolghav:\n:point_right::point_right:"
+        ]
+    },
+    {
+        "trigger":"(?i)i'?m bored",
+        "response":[
+            "Hi Bored! I'm mtgbot!"
+        ]
+    }
+]
