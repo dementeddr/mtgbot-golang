@@ -1,6 +1,8 @@
 # mtgbot-golang
 Rewrite of mtgbot in Go
-DEPENDENCIES: https://github.com/nlopes/slack
+DEPENDENCIES:
+https://github.com/nlopes/slack
+Go 1.7 or greater
 
 Currently only supports using api.magicthegathering.io as the card fetching api
 
