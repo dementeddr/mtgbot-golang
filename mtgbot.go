@@ -61,7 +61,7 @@ func allowedCardRarity(rarity string) bool {
 func loadCustomResponses() {
 	raw, err := ioutil.ReadFile(config.CustomResponseFile)
 	if err != nil {
-		log.Fatal("loadCustomResponses: ", err)
+		log.Println("loadCustomResponses: ", err)
 		os.Exit(1)
 	}
 
@@ -72,7 +72,7 @@ func loadCustomResponses() {
 func loadConfig(configPath string) {
 	raw, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		log.Fatal("loadConfig: ", err)
+		log.Println("loadConfig: ", err)
 		os.Exit(1)
 	}
 
@@ -89,19 +89,19 @@ func fetchCard(cardName string) string {
 
 	req, err := http.NewRequest("GET", uri, nil)
 	if err != nil {
-		log.Fatal("NewRequest: ", err)
+		log.Println("NewRequest: ", err)
 		return ""
 	}
 
 	resp, err := mtgClient.Do(req)
 	if err != nil {
-		log.Fatal("Do: ", err)
+		log.Println("Do: ", err)
 		return ""
 	}
 
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	var cc Cards
@@ -109,7 +109,8 @@ func fetchCard(cardName string) string {
 	defer resp.Body.Close()
 
 	if err := json.Unmarshal(data, &cc); err != nil {
-		log.Fatal("Decode: ", err)
+		fmt.Println("Decode: ", err)
+		fmt.Println(data)
 		return ""
 	}
 
@@ -146,7 +147,7 @@ func fetchCard(cardName string) string {
 
 // returns an arary of strings that were encapsulated by [[string_here]]
 func getStringsFromMessage(message string) []string {
-	reg := regexp.MustCompile(`\[\[[\w ,.!?:\-\(\)\/']+\]\]`)
+	reg := regexp.MustCompile(`\[\[[\w ,.!?:\-\(\)\/'"]+\]\]`)
 	matches := reg.FindAllStringSubmatch(message, -1)
 
 	if len(matches) == 0 {
@@ -232,7 +233,7 @@ func main() {
 		loadConfig(os.Args[1])
 	} else {
 		fmt.Println("Loading config from './config.json'")
-		loadConfig("./config.json")
+		loadConfig("/home/ezimmer/go/src/mtgbot-golang/config.json")
 	}
 
 	if config.CustomResponseFile != "" {
