@@ -200,10 +200,8 @@ func processMessage(message string) string {
 
 // watches slack for events and acts on them
 func slackStuff() {
-	api := slack.New(config.SlackApiKey)
 	logger := log.New(os.Stdout, "slack-bot: ", log.Lshortfile|log.LstdFlags)
-	slack.SetLogger(logger)
-	// api.SetDebug(true)
+	api := slack.New(config.SlackApiKey, slack.OptionLog(logger), slack.OptionDebug(false))
 
 	rtm := api.NewRTM()
 	go rtm.ManageConnection()
@@ -218,7 +216,7 @@ func slackStuff() {
 					UnfurlLinks: true,
 					UnfurlMedia: true,
 				}
-				api.PostMessage(ev.Channel, response, params)
+				api.SendMessage(ev.Channel, slack.MsgOptionText(response, false), slack.MsgOptionPostMessageParameters(params))
 			}
 			break
 		default:
