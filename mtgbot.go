@@ -52,6 +52,7 @@ func allowedCardRarity(rarity string) bool {
 	m["Uncommon"] = true
 	m["Rare"] = true
 	m["Mythic Rare"] = true
+	m["Mythic"] = true
 	m["Basic Land"] = true
 
 	return m[rarity]
