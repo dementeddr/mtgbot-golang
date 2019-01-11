@@ -37,6 +37,7 @@ type Card struct {
 	SetName      string `json:"setName"`
 	ImageUrl     string `json:"imageUrl,omitempty"`
 	Rarity       string `json:"rarity"`
+	Type         string `json:"type,omitempty"`
 }
 
 type Cards struct {
@@ -132,7 +133,7 @@ func fetchCard(cardName string) string {
 		// we need to go through in reverse because the api returns cards sorted ascending
 		// and we want the most recent printing
 		c := cc.Card[len(cc.Card)-1-i]
-		if c.ImageUrl != "" && allowedCardRarity(c.Rarity) {
+		if c.ImageUrl != "" && allowedCardRarity(c.Rarity) && c.Type != "Vanguard"{
 			if strings.EqualFold(c.Name, cardName) {
 				return c.ImageUrl
 			} else if reg.MatchString(c.Name) && !reg.MatchString(cardToReturn.Name) {
