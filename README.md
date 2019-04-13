@@ -2,9 +2,13 @@
 Rewrite of mtgbot in Go
 DEPENDENCIES:
 https://github.com/nlopes/slack
+https://github.com/mattn/go-sqlite3
+
 Go 1.7 or greater
 
-Currently only supports using api.magicthegathering.io as the card fetching api
+Currently only supports using api.magicthegathering.io as the card fetching api. 
+
+Currently uses an incomplete SQLite DB to fetch dnd spells. It is missing random spells from the PHB, and anything from any supplemental products.
 
 Config file path can be passed in a command line argument, defaults to ./config.json
 

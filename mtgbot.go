@@ -12,8 +12,9 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
+	"database/sql"
 	"github.com/nlopes/slack"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var custom CustomResponses = nil
@@ -147,10 +148,10 @@ func fetchCard(cardName string) string {
 	return cardToReturn.ImageUrl
 }
 
-// returns an arary of strings that were encapsulated by [[string_here]]
-func getStringsFromMessage(message string) []string {
-	reg := regexp.MustCompile(`\[\[[\w ,.!?:\-\(\)\/'"]+\]\]`)
-	matches := reg.FindAllStringSubmatch(message, -1)
+// returns an array of strings that were encapsulated by [[string_here]]
+func getMTGStringsFromMessage(message string) []string {
+	mtg_reg := regexp.MustCompile(`\[\[[\w ,.!?:\-\(\)\/'"]+\]\]`)
+	matches := mtg_reg.FindAllStringSubmatch(message, -1)
 
 	if len(matches) == 0 {
 		return nil
@@ -166,6 +167,28 @@ func getStringsFromMessage(message string) []string {
 	return ret
 }
 
+
+// returns an array of strings that were encapsulated by <string_here>
+func getDNDStringsFromMessage(message string) []string {
+
+	dnd_reg := regexp.MustCompile(`\&lt;[\w ']+\&gt;`)
+	matches := dnd_reg.FindAllStringSubmatch(message, -1)
+
+	if len(matches) == 0 {
+		return nil
+	}
+
+	ret := make([]string, len(matches))
+
+	for index, match := range matches {
+		trimmed_string := strings.TrimPrefix(match[0], "&lt;") // &lt; = '<'
+		trimmed_string = strings.TrimSuffix(trimmed_string, "&gt;") // &gt; = '>'
+		ret[index] = trimmed_string
+	}
+
+	return ret
+}
+
 // checks the custom response json, and returns a random response for the given trigger
 func checkCustomResponseMatches(message string) string {
 	ret := ""
@@ -175,11 +198,49 @@ func checkCustomResponseMatches(message string) string {
 			if reg.MatchString(message) {
 				// if there is more than one response for a given trigger then print one at random
 				rand.Seed(time.Now().UTC().UnixNano())
-				ret = ret + c.Response[rand.Intn(len(c.Response))] + "\n"
+				return ret + c.Response[rand.Intn(len(c.Response))] + "\n"
+
 			}
 		}
 	}
 	return ret
+}
+
+
+// Takes the name of a DnD spell, queries the database for it's into, and formats that text
+// so it can be posted by mtgbot
+func formatDnDSpellText(name string, database *sql.DB) string {
+
+	var cased_name = ""
+	var level = ""
+	var school = ""
+	var desc = ""
+	var build strings.Builder
+
+	row, err := database.Query("SELECT Name, Level, School FROM Spells_Main WHERE Name=?", name)
+	if (err != nil) {
+		fmt.Println(err)
+		return ""
+	}
+
+	row.Next()
+	row.Scan(&cased_name, &level, &school)
+
+	fmt.Fprintf(&build, ">*%s*\n>_%s %s Spell_\n", cased_name, level, school)
+
+	row, err = database.Query("SELECT Description FROM Spells_Desc WHERE Name=?", name)
+	if (err != nil) {
+		fmt.Println(err)
+		return ""
+	}
+
+	row.Next()
+	row.Scan(&desc)
+
+	fmt.Fprintf(&build, ">%s", desc)
+
+	build.WriteString("")
+	return build.String()
 }
 
 // takes a slack message and determines if we need to respond
@@ -190,10 +251,58 @@ func processMessage(message string) string {
 		return ret
 	}
 
-	items := getStringsFromMessage(message)
-	if items != nil {
-		for _, s := range items {
+	mtg_cards := getMTGStringsFromMessage(message)
+	if mtg_cards != nil {
+		for _, s := range mtg_cards {
 			ret = ret + fetchCard(s) + "\n"
+		}
+	}
+
+	dnd_spells := getDNDStringsFromMessage(message)
+
+	if dnd_spells != nil {
+		for _, s := range dnd_spells{
+
+			database, err := sql.Open("sqlite3", "./dndbot.db")
+			if (err != nil) {
+				fmt.Println(err)
+				return ""
+			}
+			rows, err := database.Query("SELECT Name FROM Spells_Desc WHERE Name LIKE '%' || ? || '%'", s)
+			if (err != nil) {
+				fmt.Println(err)
+				return ""
+			}
+			if (rows == nil) {
+				return ""
+			}
+
+			// Find the entry with the exact name. Barring that, take the last entry that the Compare function says is "greater" than the searched name. For whatever that's worth.
+			var row_name = "" // Name value in the row from SQL
+			var closeness = -2 // Return value from the closest comparison so far
+			var close_name = "" // Closest name so far, for whatever that's worth
+
+			for rows.Next() {
+				rows.Scan(&row_name)
+				var comp_val = strings.Compare(strings.ToLower(row_name), strings.ToLower(s))
+
+				// This means we found an exact match
+				if (comp_val == 0) {
+					close_name = row_name
+					break
+				}
+
+				if (comp_val > closeness) {
+					close_name = row_name
+					closeness = comp_val
+				}
+			}
+
+			if (close_name != "") {
+				ret = formatDnDSpellText(close_name, database)
+			}
+
+			return ret
 		}
 	}
 
@@ -211,6 +320,10 @@ func slackStuff() {
 	for msg := range rtm.IncomingEvents {
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
+			// Untested. Bot was posting as me, and I couldn't exactly filter me out
+			if (ev.User == "mtgbot") {
+				break;
+			}
 			response := processMessage(ev.Text)
 			if strings.Trim(response, "\n") != "" {
 				params := slack.PostMessageParameters{
@@ -233,7 +346,7 @@ func main() {
 		loadConfig(os.Args[1])
 	} else {
 		fmt.Println("Loading config from './config.json'")
-		loadConfig("/home/ezimmer/go/src/mtgbot-golang/config.json")
+		loadConfig("/home/mumbler/go/src/mtgbot-golang/config.json")
 	}
 
 	if config.CustomResponseFile != "" {

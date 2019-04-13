@@ -1,0 +1,21 @@
+1.	OPEN: The processMessage function is run on all events, not just new messages.
+
+2.	OPEN: Related to #1, mtgbot will process its own messages. We can potentially introduce an infinite spam-loop if we ever add a function that triggers itself. So that's fun.
+
+3.	OPEN: Non-exact matches on both DnD spells and MTG cards is basically random. Maybe add fuzzy-matching logic?
+
+4.	OPEN: Some D&D spells are missing from the database. I'll have to empty and regerate the database off of a new api, or seek another solution. Known missing entries: Fire Bolt, Eldritch Blast, Vicious Mockery, Poison Spray
+
+5.	OPEN: Some D&D spell descriptions were obviously run through google translate at some point (i.e. Wish). I'll have to empty and regenerate the database off of a new api, or seek another solution. Or leave it. They are kind of funny.
+
+6.	OPEN: Current D&D spell solution pastes the text straight to the channel. For wordy spells like Wish, it can take up a good chunk of the screen. We may need to look into text snippets, a lightweight web server, or just straight linking to a website. dndbeyond.com looks promising.
+
+7.  OPEN: mtgbot will sometimes return Amonkhet Invocation versions of cards (i.e. Blood Moon). We might be able to filter by set, since Masterpiece series are tehnically separate sets.
+
+8.	OPEN: Database only contains PHB spells; nothing from any supplemental books. All the APIs I found were the same that way. We could either write a web-scraper, or just link directly to a site like dndbeyond.com, instead of using a database.
+
+9.	OPEN: Multi-line spell descriptions don't get the '>' for Slack formatting.
+
+10.	OPEN: Cantrips get printed as "Cantrip {school} Spell", which isn't terribly grammatical.
+
+11.	OPEN: The D&D fetcher will match any number of < and > on each side. 

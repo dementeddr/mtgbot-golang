@@ -19,6 +19,12 @@
             ":coolghav:\n:point_right::point_right:"
         ]
     },
+	{
+		"trigger":"(?i)\\[\\[pooz\\]\\]",
+		"response":[
+			":blank::coolghav:\n:point_left::point_left:"
+		]
+	},
     {
         "trigger":"(?i)i'?m bored",
         "response":[
