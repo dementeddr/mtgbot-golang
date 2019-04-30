@@ -1,59 +1,59 @@
 [
-    {
-        "trigger":"(?i)\\[\\[slambo\\]\\]",
-        "response":[
-            "http://i.imgur.com/4vFIe9d.jpg",
-            "http://i.imgur.com/kZyW3EP.png",
-            "https://i.imgur.com/WcpiftW.png",
-            "https://i.imgur.com/qT1bquI.gif",
-            "https://i.imgur.com/SsYiN82.jpg",
-            "https://i.imgur.com/VIFLFAv.jpg",
-            "https://i.imgur.com/gjHxJcD.png",
-            "https://ca.slack-edge.com/T50SNSNF6-U51KKUB0W-480e24985283-512",
-	    "https://media.giphy.com/media/4N97pPy1hF4Comao1u/giphy.gif"
-        ]
-    },
-    {
-        "trigger":"(?i)\\[\\[zoop\\]\\]",
-        "response":[
-            ":coolghav:\n:point_right::point_right:"
-        ]
-    },
+	{
+		"trigger":"(?i)\\[\\[slambo\\]\\]",
+		"response":[
+			"http://i.imgur.com/4vFIe9d.jpg",
+			"http://i.imgur.com/kZyW3EP.png",
+			"https://i.imgur.com/WcpiftW.png",
+			"https://i.imgur.com/qT1bquI.gif",
+			"https://i.imgur.com/SsYiN82.jpg",
+			"https://i.imgur.com/VIFLFAv.jpg",
+			"https://i.imgur.com/gjHxJcD.png",
+			"https://ca.slack-edge.com/T50SNSNF6-U51KKUB0W-480e24985283-512",
+			"https://media.giphy.com/media/4N97pPy1hF4Comao1u/giphy.gif"
+		]
+	},
+	{
+		"trigger":"(?i)\\[\\[zoop\\]\\]",
+		"response":[
+			":coolghav:\n:point_right::point_right:"
+		]
+	},
 	{
 		"trigger":"(?i)\\[\\[pooz\\]\\]",
 		"response":[
 			":blank::coolghav:\n:point_left::point_left:"
 		]
 	},
-    {
-        "trigger":"(?i)i'?m bored",
-        "response":[
-            "Hi Bored! I'm mtgbot!"
-        ]
-    },
-    {
-	"trigger":"(?i)\\[\\[rex\\]\\]",
-	"response":[
-		"https://i.imgur.com/laat3Aq.png",
-		"https://i.imgur.com/wA5wJZ3.png"
-	]
-    },
-    {
-	"trigger":"(?i)\\[\\[buttmeister\\]\\]",
-	"response":[
-		"https://i.imgur.com/wA5wJZ3.png"
-	]	
-    },
-    {
-	    "trigger":"(?i)\\[\\[trubbish\\]\\]",
-	    "response":[
-		    "https://cdn.bulbagarden.net/upload/thumb/e/e2/568Trubbish.png/250px-568Trubbish.png"
-	    ]
-    },
-    {
-	   "trigger":"(?i)\\[\\[slowpoke\\]\\]",
-	   "response":[
-		"https://i.imgur.com/m6pv8xD.png"
-           ]
-    }
+	{
+		"trigger":"(?i)i'?m bored",
+		"response":[
+			"Hi Bored! I'm mtgbot!"
+		]
+	},
+	{
+		"trigger":"(?i)\\[\\[rex\\]\\]",
+		"response":[
+			"https://i.imgur.com/laat3Aq.png",
+			"https://i.imgur.com/wA5wJZ3.png"
+		]
+	},
+	{
+		"trigger":"(?i)\\[\\[buttmeister\\]\\]",
+		"response":[
+			"https://i.imgur.com/wA5wJZ3.png"
+		]
+	},
+	{
+		"trigger":"(?i)\\[\\[trubbish\\]\\]",
+		"response":[
+			"https://cdn.bulbagarden.net/upload/thumb/e/e2/568Trubbish.png/250px-568Trubbish.png"
+		]
+	},
+	{
+		"trigger":"(?i)\\[\\[slowpoke\\]\\]",
+		"response":[
+			"https://i.imgur.com/m6pv8xD.png"
+		]
+	}
 ]

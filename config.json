@@ -1,5 +1,7 @@
 {
-    "mtg_api_endpoint":"https://api.magicthegathering.io/v1/cards?name=%s&orderBy=multiverseid",
+    "mtg_api_name_only":"https://api.magicthegathering.io/v1/cards?name=%s&orderBy=multiverseid",
+    "mtg_api_name_set":"https://api.magicthegathering.io/v1/cards?name=%s&setName=%s&orderBy=multiverseid",
+    "mtg_api_name_code":"https://api.magicthegathering.io/v1/cards?name=%s&set=%s&orderBy=multiverseid",
     "custom_path":"./custom.json",
     "slack_key":"XXXXXXXXXXXXXXXX"
 }

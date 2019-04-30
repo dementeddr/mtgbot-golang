@@ -21,9 +21,11 @@ var custom CustomResponses = nil
 var config Config
 
 type Config struct {
-	MtgApiEndpoint     string `json:"mtg_api_endpoint"`
-	CustomResponseFile string `json:"custom_path"`
-	SlackApiKey        string `json:"slack_key"`
+	MtgApiNameOnly      string `json:"mtg_api_name_only"`
+	MtgApiNameAndSet    string `json:"mtg_api_name_set"`
+	MtgApiNameAndCode   string `json:"mtg_api_name_code"`
+	CustomResponseFile  string `json:"custom_path"`
+	SlackApiKey         string `json:"slack_key"`
 }
 
 type CustomResponses []struct {
@@ -34,7 +36,7 @@ type CustomResponses []struct {
 type Card struct {
 	Name         string `json:"name"`
 	MultiverseId int    `json:"multiverseid"`
-	Set          string `json"set"`
+	Set          string `json:"set"`
 	SetName      string `json:"setName"`
 	ImageUrl     string `json:"imageUrl,omitempty"`
 	Rarity       string `json:"rarity"`
@@ -82,29 +84,28 @@ func loadConfig(configPath string) {
 	json.Unmarshal(raw, &config)
 }
 
-// leverage the api defined in the config to fetch links to the gatherer image of a card
-// NOTE: currently only works with api.magicthegathering.io/v1/
-func fetchCard(cardName string) string {
-	card_name := url.QueryEscape(cardName)
-	uri := fmt.Sprintf(config.MtgApiEndpoint, card_name)
+// Does the actuall GET request for magic cards and cleanup afterward. Returns a Cards struct
+// if successful. Returns nil if there are any errors
+func callMtgAPI(uri string) *Cards {
 
 	mtgClient := &http.Client{}
 
 	req, err := http.NewRequest("GET", uri, nil)
 	if err != nil {
 		log.Println("NewRequest: ", err)
-		return ""
+		return nil
 	}
 
 	resp, err := mtgClient.Do(req)
 	if err != nil {
 		log.Println("Do: ", err)
-		return ""
+		return nil
 	}
 
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
+		return nil
 	}
 
 	var cc Cards
@@ -114,28 +115,70 @@ func fetchCard(cardName string) string {
 	if err := json.Unmarshal(data, &cc); err != nil {
 		fmt.Println("Decode: ", err)
 		fmt.Println(data)
-		return ""
+		return nil
+	}
+
+	return &cc
+}
+
+// leverage the api defined in the config to fetch links to the gatherer image of a card
+// NOTE: currently only works with api.magicthegathering.io/v1/
+func fetchCard(searchString string) string {
+
+	search_split := strings.Split(searchString,"|")
+	card_name := search_split[0]
+
+	url_card_name := url.QueryEscape(card_name)
+	//url_card_name := url.QueryEscape(search_split[0])
+
+	uri := ""
+	//set_name := ""
+
+	// If there's a single divider, determine if it's a set name or set code
+	if len(search_split) == 2 {
+		set_code_reg := regexp.MustCompile(`^[0-9A-Za-z]{2,3}$`)
+		set_code := set_code_reg.FindString(search_split[1])
+		if len(set_code) > 0 {
+			uri = fmt.Sprintf(config.MtgApiNameAndCode, url_card_name, set_code)
+		} else if len(set_code) == 0 {
+			uri = fmt.Sprintf(config.MtgApiNameAndSet, url_card_name, url.QueryEscape(search_split[1]))
+		} else {
+			fmt.Println("Set Code regex returned negative length string: %d\n", len(set_code))
+			return "Shit... I think fucked up bad, guys."
+		}
+	// If there's zero or more than one dividers, just search with the name
+	} else {
+		uri = fmt.Sprintf(config.MtgApiNameOnly, url_card_name)
+	}
+
+	cc := callMtgAPI(uri)
+	if cc == nil {
+		return "Error fetching card from API. See command line output."
+	}
+
+	if len (cc.Card) == 0 {
+		return "Card not found :("
 	}
 
 	var cardToReturn Card
-	regString := fmt.Sprintf("(?i)^%s", cardName)
+	regString := fmt.Sprintf("(?i)^%s(,| )", card_name)
 	reg := regexp.MustCompile(regString)
 
 	/*
-		check for matches as follows:
-		exact name match (case insensitive):
-		 	return immediately
-		regex for `(?i)^cardname`, and current card set to return doesnt match:
-		 	set current card to be returned
-		no card is currently set to be returned:
-		 	set the current card to be returned
+	check for matches as follows:
+	exact name match (case insensitive):
+		return immediately
+	regex for `(?i)^cardname`, and current card set to return doesnt match:
+		set current card to be returned
+	no card is currently set to be returned:
+		set the current card to be returned
 	*/
 	for i := range cc.Card {
 		// we need to go through in reverse because the api returns cards sorted ascending
 		// and we want the most recent printing
 		c := cc.Card[len(cc.Card)-1-i]
-		if c.ImageUrl != "" && allowedCardRarity(c.Rarity) && c.Type != "Vanguard"{
-			if strings.EqualFold(c.Name, cardName) {
+		if c.ImageUrl != "" && allowedCardRarity(c.Rarity) && c.Type != "Vanguard" {
+			if strings.EqualFold(c.Name, card_name) {
 				return c.ImageUrl
 			} else if reg.MatchString(c.Name) && !reg.MatchString(cardToReturn.Name) {
 				cardToReturn = c
@@ -150,7 +193,7 @@ func fetchCard(cardName string) string {
 
 // returns an array of strings that were encapsulated by [[string_here]]
 func getMTGStringsFromMessage(message string) []string {
-	mtg_reg := regexp.MustCompile(`\[\[[\w ,.!?:\-\(\)\/'"]+\]\]`)
+	mtg_reg := regexp.MustCompile(`\[\[[\w ,.!?:\-\|\(\)\/'"]+\]\]`)
 	matches := mtg_reg.FindAllStringSubmatch(message, -1)
 
 	if len(matches) == 0 {
@@ -226,7 +269,7 @@ func formatDnDSpellText(name string, database *sql.DB) string {
 	row.Next()
 	row.Scan(&cased_name, &level, &school)
 
-	fmt.Fprintf(&build, ">*%s*\n>_%s %s Spell_\n", cased_name, level, school)
+	fmt.Fprintf(&build, ">*%s*\n>_Level %s %s Spell_\n", cased_name, level, school)
 
 	row, err = database.Query("SELECT Description FROM Spells_Desc WHERE Name=?", name)
 	if (err != nil) {
